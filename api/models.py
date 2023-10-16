@@ -6,13 +6,13 @@ class User(AbstractUser):
         return f'{self.first_name} {self.last_name}'
 
 class Doctor(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, default=None)
     specialty = models.CharField(max_length=255)
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name} - {self.specialty}'
     
 class Patient(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, default=None)
     doctor = models.ForeignKey('Doctor', on_delete=models.SET_NULL, null=True)
     def __str__(self):
         return self.user.first_name

@@ -23,10 +23,10 @@ class Doctor_signup(APIView):
             hashed_password = make_password(raw_pwd)
             existing_user = models.User.objects.filter(email=email)
             if existing_user:
-                return Response({'error': 'doctor with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
             user = serializer.save(password=hashed_password)
-            doctor = models.Doctor.objects.create(user=user)
-            return Response({'message': 'doctor signup successful'}, status=status.HTTP_201_CREATED)
+            doctor = models.Doctor.objects.create(user=user, specialty=specialty)
+            return Response({'message': 'Doctor has been created'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class Doctor_login(APIView):
@@ -38,13 +38,16 @@ class Doctor_login(APIView):
             email = serializer.validated_data.get('email')
             password = serializer.validated_data.get('password')
             try:
-                doctor = models.Doctor.objects.get(email=email)
+                user = models.User.objects.get(email=email) 
+                doctor = models.Doctor.objects.get(user=user) #Retrieve the doctor instance associated with the user
+            except models.User.DoesNotExist:
+                user=None
             except models.Doctor.DoesNotExist:
                 doctor=None
-            if doctor is not None and check_password(password, doctor.password):
+            if doctor is not None and check_password(password, doctor.user.password):
                 token = Token.objects.get_or_create(user=doctor)
                 return Response({'message': 'login successful', 'access_token': token.key, 'user_id': doctor.id}, status=status.HTTP_200_OK)
-            return Response({'error': 'Invalid login credentials', 'email': doctor.email, 'password': doctor.password}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid login credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
        
 class Patient_signup(APIView):
@@ -54,13 +57,14 @@ class Patient_signup(APIView):
         serializer = serializers.PatientSignupSerializer(data=request.data)
         if serializer.is_valid(raise_exception=False):
             validated_data = serializer.validated_data
-            existing_patient = models.Patient.objects.filter(email=validated_data.get('email'))
-            if existing_patient:
-                return Response({'error': 'patient with this email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            existing_user = models.User.objects.get(email=validated_data.get('email'))
+            if existing_user:
+                return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
             password = validated_data.get('password')
             hashed_password = make_password(password)
-            serializer.save(password=hashed_password)
-            return Response({'message': 'patient signup successful'}, status=status.HTTP_201_CREATED)
+            user = serializer.save(password=hashed_password)
+            patient = models.Patient.objects.create(user=user)
+            return Response({'message': 'Patient has been created.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
 class Patient_login(APIView):
@@ -72,12 +76,16 @@ class Patient_login(APIView):
             email = serializer.validated_data.get('email')
             password = serializer.validated_data.get('password')
             try:
-                patient = models.Patient.objects.get(email=email)
-                if patient and check_password(password, patient.password):
-                    token = Token.objects.get_or_create(user=patient)
-                    return Response({'message': 'login successful', 'access_token': token.key, 'user_id': patient.id}, status=status.HTTP_200_OK)
-                return Response({'error': 'Invalid login credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-            except models.Doctor.DoesNotExist:
-                return Response({'error': 'Patient object not found'}, status=status.HTTP_404_NOT_FOUND)
+                user = models.User.objects.get(email=email)
+            except models.User.DoesNotExist:
+                user=None
+            if user is not None:
+                patient = models.Patient.objects.get(user=user) #Retrieve the patient instance associated with the user
+            else:
+                patient=None
+            if patient is not None and check_password(password, patient.user.password):
+                token = Token.objects.get_or_create(user=patient)
+                return Response({'message': 'login successful', 'access_token': token.key, 'user_id': patient.id}, status=status.HTTP_200_OK)
+            return Response({'error': 'Invalid login credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
