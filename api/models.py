@@ -7,25 +7,15 @@ class User(AbstractUser):
 
 class Doctor(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-    first_name =models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
     specialty = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=20)
-    email = models.EmailField(default='noemail@example.com')
-    password = models.CharField(max_length=255)
     def __str__(self):
-        return f'{self.first_name} - {self.specialty}'
+        return f'{self.user.first_name} {self.user.last_name} - {self.specialty}'
     
 class Patient(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-    first_name =models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    phone_number =models.CharField(max_length=20)
-    email= models.EmailField(default='noemail@example.com')
     doctor = models.ForeignKey('Doctor', on_delete=models.SET_NULL, null=True)
-    password = models.CharField(max_length=255)
     def __str__(self):
-        return self.first_name
+        return self.user.first_name
 
 class Appointment(models.Model):
     date = models.DateField(auto_now_add=True)
