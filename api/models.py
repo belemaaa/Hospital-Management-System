@@ -13,7 +13,7 @@ class Doctor(models.Model):
     
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, default=None)
-    doctor = models.ForeignKey('Doctor', on_delete=models.SET_NULL, null=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True)
     def __str__(self):
         return self.user.first_name
 
