@@ -2,8 +2,10 @@ from rest_framework import serializers
 from . import models
 
 class DoctorSignupSerializer(serializers.ModelSerializer):
+    specialty = serializers.SerializerMethodField()
+    phone_number = serializers.SerializerMethodField()
     class Meta:
-        model = models.Doctor
+        model = models.User
         fields = [
             'id',
             'first_name',
@@ -12,6 +14,10 @@ class DoctorSignupSerializer(serializers.ModelSerializer):
             'phone_number',
             'specialty',
         ]
+    def get_specialty(self, obj):
+        return obj.specialty
+    def get_phone_number(self, obj):
+        return obj.phone_number
 
 class DoctorLoginSerializer(serializers.Serializer):
     email = serializers.CharField()
@@ -19,7 +25,7 @@ class DoctorLoginSerializer(serializers.Serializer):
     
 class PatientSignupSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Patient
+        model = models.User
         fields = [
             'id',
             'first_name',

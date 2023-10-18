@@ -25,7 +25,7 @@ class Doctor_signup(APIView):
             if existing_user:
                 return Response({'error': 'Email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
             user = serializer.save(password=hashed_password)
-            doctor = models.Doctor.objects.create(user=user, specialty=specialty)
+            doctor = models.Doctor.objects.create(user=user, specialty=specialty, phone_number=phone_number)
             return Response({'message': 'Doctor has been created'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
